@@ -5,7 +5,14 @@ namespace lsm {
 	class SSTableBuilder {
 	private:
 		std::ofstream file;
-		const std::string path;
+		std::vector<Bookmark> index;
+		size_t added;
+		uint64_t current_offset;
+
+		const size_t INDEX_ENTRY_SIZE = 100;
+
+		void writeEntry(bool is_tombstone, const std::string& key, const std::string& val);
+		void writeIndex();
 
 	public:
 		SSTableBuilder(const std::string& filepath);

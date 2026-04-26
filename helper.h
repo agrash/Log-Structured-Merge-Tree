@@ -20,4 +20,12 @@ namespace lsm {
 		bool operator==(const std::string& other) const;
 	};
 
+	struct returnStruct {
+		bool key_found;
+		bool is_tombstone;
+		std::string val;
+
+		returnStruct(bool key_found, bool is_tombstone, std::string val) : key_found(key_found), is_tombstone(is_tombstone), val(std::move(val)) {}
+	};
+
 }

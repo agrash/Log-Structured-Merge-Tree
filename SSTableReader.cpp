@@ -5,14 +5,17 @@ namespace lsm {
 
 	/*
 	std::ifstream file;
-	std::string path;
 
 	uint64_t index_offset;
-	streampos index_start;
+	std::streampos index_start;
 
 	std::vector<Bookmark> index;
 	*/
-	SSTableReader::SSTableReader(const std::string& filepath) : path(filepath) {
+	SSTableReader::~SSTableReader() {
+		file.close();
+	}
+
+	SSTableReader::SSTableReader(const std::string& filepath) {
 		file.open(filepath, std::ios::in | std::ios::binary);
 		if (!file.is_open()) {
 			throw runtime_error("Unable to open file " + path);
@@ -20,14 +23,14 @@ namespace lsm {
 
 		file.seekg(-(int)sizeof(uint64_t), std::ios::end);
 
-		streampos offset_start = file.tellg();
+		std::streampos offset_start = file.tellg();
 
 		file.read(reinterpret_cast<char*> (&index_offset), sizeof(uint64_t));
 
 		file.seekg(index_offset);
 		index_start = file.tellg();
 
-		streampos curr = index_start;
+		std::streampos curr = index_start;
 
 		while (curr < offset_start) {
 			uint32_t key_length;
@@ -46,21 +49,18 @@ namespace lsm {
 
 	extern bool decode(std::ifstream& infile, bool& is_tombstone, std::string& key, std::string& val);
 
-	std::string SSTableReader::findKey(const std::string& key) {
-		if (!file.is_open()) {
-			throw runtime_error("Unable to open file " + path);
-		}
+	returnStruct SSTableReader::findKey(const std::string& key) {
 
 		Bookmark dummy(key, 0);
 		int idx = upper_bound(index.begin(), index.end(), dummy) - index.begin() - 1;
 		if (idx < 0) {
-			throw runtime_error("Key not found.");
+			return returnStruct(false, false, "");
 		}
 
 		file.seekg(index[idx].offset);
 
-		streampos curr = file.tellg();
-		streampos end  = idx != index.size() - 1 ? static_cast<std::streamoff>(index[idx + 1].offset) : index_start;
+		std::streampos curr = file.tellg();
+		std::treampos end  = idx != index.size() - 1 ? static_cast<std::streamoff>(index[idx + 1].offset) : index_start;
 
 		while (curr < end) {
 			bool is_tombstone;
@@ -68,15 +68,19 @@ namespace lsm {
 
 			if (!decode(file, is_tombstone, saved_key, saved_val)) {throw runtime_error("Error occured while reading file.");}
 
-			if (key == saved_key) {
-				if (is_tombstone) {return "";}
-				else {return val;}
+			auto cmp_result = saved_key <=> key;
+			if (cmp_result == 0) {
+				if (is_tombstone) {return returnStruct(true, true, "");}
+				else {return returnStruct(true, false, std::move(saved_val));}
+			}
+			else if (cmp_result > 0) {
+				return returnStruct(false, false, "");
 			}
 
 			curr = file.tellg();
 		}
 
-		throw std::runtime_error("Key not found.");
+		return returnStruct(false, false, "");
 	}
 
 }

@@ -20,7 +20,7 @@ namespace lsm {
 		DB::DB(std::string log_path) : log(log_path), num_tables(0) {}
 
 		void put(std::string& key, std::string& val);
-		std::string get(const std::string& key);
+		returnStruct get(const std::string& key);
 	};
 
 }

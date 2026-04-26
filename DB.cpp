@@ -28,11 +28,11 @@ using namespace lsm {
 		checkAndHandleFlush();
 	}
 
-	std::string DB::get(const std::string& key) {
+	returnStruct DB::get(const std::string& key) {
 		auto it = memtable.search(key);
 		if (it != memtable.end()) {
-			if (it->is_tombstone) {return "";}
-			return it->val;
+			if (it->is_tombstone) {return returnStruct(true, true, "");}
+			return returnStruct(true, false, it->val);
 		}
 
 		for (int i=num_tables; i>0; --i) {
@@ -40,15 +40,11 @@ using namespace lsm {
 
 			SSTableReader reader(filepath);
 
-			try {
-				std::string res = reader.findKey(key);
-				return res;
-
-			}
-			catch(...) {}
+			returnStruct res = reader.findKey(key);
+			if (res.key_found) {return res;}
 		}
 
-		throw std::runtime_error("Key not found.");
+		return returnStruct(false, false, "");
 	}
 
 }
