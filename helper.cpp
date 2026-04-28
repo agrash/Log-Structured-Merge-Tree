@@ -52,6 +52,7 @@ namespace lsm {
 
 		uint8_t tombstone;
 		infile.read(reinterpret_cast<char*> (&tombstone), sizeof(uint8_t));
+		if (infile.eof()) {return false;}
 
 		key = helper();
 		if (tombstone == 0) {

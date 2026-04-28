@@ -59,4 +59,5 @@ namespace lsm {
 		wal_log.recover(memtable);
 	}
 
+
 }
