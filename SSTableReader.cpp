@@ -18,7 +18,7 @@ namespace lsm {
 	SSTableReader::SSTableReader(const std::string& filepath) {
 		file.open(filepath, std::ios::in | std::ios::binary);
 		if (!file.is_open()) {
-			throw runtime_error("Unable to open file " + path);
+			throw std::runtime_error("Unable to open file " + filepath);
 		}
 
 		file.seekg(-(int)sizeof(uint64_t), std::ios::end);
@@ -60,13 +60,13 @@ namespace lsm {
 		file.seekg(index[idx].offset);
 
 		std::streampos curr = file.tellg();
-		std::treampos end  = idx != index.size() - 1 ? static_cast<std::streamoff>(index[idx + 1].offset) : index_start;
+		std::streampos end  = (idx != index.size() - 1) ? static_cast<std::streampos>(index[idx + 1].offset) : index_start;
 
 		while (curr < end) {
 			bool is_tombstone;
 			std::string saved_key, saved_val;
 
-			if (!decode(file, is_tombstone, saved_key, saved_val)) {throw runtime_error("Error occured while reading file.");}
+			decode(file, is_tombstone, saved_key, saved_val);
 
 			auto cmp_result = saved_key <=> key;
 			if (cmp_result == 0) {

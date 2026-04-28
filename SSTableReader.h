@@ -1,6 +1,4 @@
 #include <iostream>
-#include <string>
-#include <stdexcept>
 #include "helper.h"
 
 namespace lsm {

@@ -1,14 +1,16 @@
 #include "DB.h"
 
-using namespace lsm {
+namespace lsm {
 
 	/*
 	SkipList memtable;
-	WAL log;
-	constexpr size_t FLUSH_TRIGGER = 4 * 1024 * 1024;
+	WAL wal_log;
+	static constexpr size_t FLUSH_TRIGGER = 4 * 1024 * 1024;
 
-	constexpr std::string sstable_prefix = "./sstable_";
-	int num_tables;
+	const std::string prefix = "sstable";
+	const std::string wal_file = "wal.log";
+
+	std::vector<std::string> sstables;
 	*/
 
 	void DB::checkAndHandleFlush() {
@@ -18,11 +20,19 @@ using namespace lsm {
 			std::cout<<"Trigerring Flush!\n";
 
 			//write logic for flush.
+
+			std::string flush_name = prefix + std::to_string(sstables.size()) + ".db";
+			SSTableBuilder builder(flush_name);
+			builder.flush(memtable);
+			sstables.push_back(flush_name);
+
+			wal_log.clear();
+			memtable.clear();
 		}
 	}
 
-	void DB::put(string& key, string& val) {
-		log.append(false, key, val);
+	void DB::put(const std::string& key, const std::string& val) {
+		wal_log.append(false, key, val);
 		memtable.insert(false, key, val);
 
 		checkAndHandleFlush();
@@ -35,16 +45,18 @@ using namespace lsm {
 			return returnStruct(true, false, it->val);
 		}
 
-		for (int i=num_tables; i>0; --i) {
-			std::string filepath = sstable_prefix + std::to_string(i);
-
-			SSTableReader reader(filepath);
+		for (auto it = sstables.rbegin(); it != sstables.rend(); ++it) {
+			SSTableReader reader(*it);
 
 			returnStruct res = reader.findKey(key);
 			if (res.key_found) {return res;}
 		}
 
 		return returnStruct(false, false, "");
+	}
+
+	void DB::recover() {
+		wal_log.recover(memtable);
 	}
 
 }

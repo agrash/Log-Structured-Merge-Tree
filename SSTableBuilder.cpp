@@ -22,7 +22,7 @@ namespace lsm {
 		file.open(filepath, std::ios::out | std::ios::trunc | std::ios::binary);
 
 		if (!file.is_open()) {
-			throw std::runtime_error("Unable to open " + path);
+			throw std::runtime_error("Unable to open " + filepath);
 		}
 	}
 

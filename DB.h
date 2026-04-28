@@ -1,6 +1,7 @@
 #include "helper.h"
 #include "SkipList.h"
 #include "WAL.h"
+#include "SSTableBuilder.h"
 #include "SSTableReader.h"
 
 namespace lsm {
@@ -8,19 +9,22 @@ namespace lsm {
 	class DB {
 	private:
 		SkipList memtable;
-		WAL log;
-		constexpr size_t FLUSH_TRIGGER = 4 * 1024 * 1024;
+		WAL wal_log;
+		static constexpr size_t FLUSH_TRIGGER = 4 * 1024 * 1024;
 
-		constexpr std::string sstable_prefix = "./sstable_";
-		int num_tables;
+		const std::string prefix = "sstable";
+
+		std::vector<std::string> sstables;
 
 		void checkAndHandleFlush();
 
 	public:
-		DB::DB(std::string log_path) : log(log_path), num_tables(0) {}
+		DB() : wal_log("wal.log") {}
 
-		void put(std::string& key, std::string& val);
+		void put(const std::string& key, const std::string& val);
 		returnStruct get(const std::string& key);
+
+		void recover();
 	};
 
 }

@@ -20,7 +20,7 @@ namespace lsm {
 		}
 	}
 
-	extern std::string encode(bool is_tombstone, const std::string& key, const std::string& val) const;
+	extern std::string encode(bool is_tombstone, const std::string& key, const std::string& val);
 
 	void WAL::append(bool is_tombstone, const std::string& key, const std::string& val) {
 		auto buffer = encode(is_tombstone, key, val);
@@ -33,7 +33,7 @@ namespace lsm {
 
 	extern bool decode(std::ifstream& infile, bool& is_tombstone, std::string& key, std::string& val);
 
-	void WAL::recover(lsm::SkipList& memtable) const {
+	void WAL::recover(SkipList& memtable) {
 		std::ifstream infile(filepath, std::ios::in | std::ios::binary);
 		if (!infile.is_open()) {return;}
 
@@ -47,6 +47,11 @@ namespace lsm {
 		}
 
 		infile.close();
+	}
+
+	void WAL::clear() {
+		file.close();
+		file.open(filepath, std::ios::out | std::ios::trunc | std::ios::binary);
 	}
 
 }

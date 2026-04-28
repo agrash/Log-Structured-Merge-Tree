@@ -16,10 +16,10 @@ namespace lsm {
 	SSTableMerger::SSTableMerger(bool remove_tombstones, const std::string& old_file_path, const std::string& new_file_path, const std::string& merged_file_path) : remove_tombstones(remove_tombstones), merged_file(merged_file_path) {
 
 		old_file.open(old_file_path, std::ios::in | std::ios::binary);
-		if (!old_file.is_open()) {throw runtime_error("Unable to open " + old_file_path);}
+		if (!old_file.is_open()) {throw std::runtime_error("Unable to open " + old_file_path);}
 
 		new_file.open(new_file_path, std::ios::in | std::ios::binary);
-		if (!new_file.is_open()) {throw runtime_error("Unable to open " + new_file_path);}
+		if (!new_file.is_open()) {throw std::runtime_error("Unable to open " + new_file_path);}
 
 		auto helper = [](std::streampos& index_start, std::ifstream& file) {
 			file.seekg(-(int)(sizeof(uint64_t)), std::ios::end);
@@ -49,7 +49,7 @@ namespace lsm {
 		bool read_old_file = true;
 		bool read_new_file = true;
 
-		auto helper = [&decode](std::ifstream& infile, std::streampos& pos, dataContainer& container) {
+		auto helper = [](std::ifstream& infile, std::streampos& pos, dataContainer& container) {
 			decode(infile, container.is_tombstone, container.key, container.val);
 			pos = infile.tellg();
 		};

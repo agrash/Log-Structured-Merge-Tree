@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -7,7 +8,7 @@
 namespace lsm {
 
 	std::string encode(bool is_tombstone, const std::string& key, const std::string& val);
-	std::string decode(std::ifstream& file, bool& is_tombstone, std::string& key, std::string& val);
+	bool decode(std::ifstream& file, bool& is_tombstone, std::string& key, std::string& val);
 
 	struct Bookmark {
 		std::string key;

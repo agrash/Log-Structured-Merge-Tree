@@ -1,4 +1,6 @@
+#pragma once
 #include "helper.h"
+#include <random>
 
 namespace lsm {
 
@@ -13,7 +15,7 @@ namespace lsm {
 			std::vector<Node*> next;
 
 			Node(const std::string& key, const std::string& val, size_t levels) : is_tombstone(false), key(key), val(val), next(levels + 1, nullptr) {}
-			size_t getSizeBytes();
+			size_t getSizeBytes() const;
 			bool isTombstone() const;
 		};
 
@@ -30,7 +32,7 @@ namespace lsm {
 		std::vector<Node*> getPredecessors(const std::string& key) const;
 		size_t calcNodeLevel();
 
-		size_t getEntrySize() const;
+		size_t getEntrySize(const Node* curr) const;
 
 	public:
 		SkipList();
@@ -45,7 +47,7 @@ namespace lsm {
 			std::string& operator*();
 	        Node* operator->();
 
-			iterator operator++();
+			iterator& operator++();
 			bool operator==(const iterator& other) const;
 			bool operator!=(const iterator& other) const;
 
@@ -56,10 +58,12 @@ namespace lsm {
 
 		iterator search(const std::string& key) const;
 		//bool remove(const std::string& key);
-		void insert(bool insert_tombstone, const std::string key, const std::string val);
-		void SkipList::insertHelper(bool insert_tombstone, const std::string& val, Node* curr);
+		void insert(bool insert_tombstone, const std::string& key, const std::string& val);
+		void insertHelper(bool insert_tombstone, const std::string& val, Node* curr);
 
 		size_t getSizeBytes() const;
+
+		void clear();
 	};
 
 }

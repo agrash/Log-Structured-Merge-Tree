@@ -1,4 +1,5 @@
 #include "helper.h"
+#include "SkipList.h"
 
 namespace lsm {
 
@@ -11,12 +12,13 @@ namespace lsm {
 
 		const size_t INDEX_ENTRY_SIZE = 100;
 
-		void writeEntry(bool is_tombstone, const std::string& key, const std::string& val);
-		void writeIndex();
-
 	public:
 		SSTableBuilder(const std::string& filepath);
 		~SSTableBuilder();
+
+		void writeEntry(bool is_tombstone, const std::string& key, const std::string& val);
+		void writeIndex();
+
 		void flush(const SkipList& memtable);
 	};
 

@@ -1,6 +1,6 @@
 #include "helper.h"
 
-using namespace lsm {
+namespace lsm {
 
 	bool Bookmark::operator<(const Bookmark& other) const {
 		return key < other.key;
@@ -14,7 +14,7 @@ using namespace lsm {
 		return key == other;
 	}
 
-	std::string encode(bool is_tombstone, const std::string& key, const std::string& val) const {
+	std::string encode(bool is_tombstone, const std::string& key, const std::string& val) {
 		std::string buffer;
 		uint32_t final_length = 1 + 4 + key.size() + (is_tombstone ? 0 : 4 + val.size());
 		buffer.reserve(final_length);
@@ -51,8 +51,7 @@ using namespace lsm {
 		};
 
 		uint8_t tombstone;
-		bool success = infile.read(reinterpret_cast<char*> (&tombstone), sizeof(uint8_t));
-		if (!success) {return false;}
+		infile.read(reinterpret_cast<char*> (&tombstone), sizeof(uint8_t));
 
 		key = helper();
 		if (tombstone == 0) {
@@ -65,4 +64,5 @@ using namespace lsm {
 
 		return true;
 	}
+
 }

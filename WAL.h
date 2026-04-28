@@ -15,7 +15,8 @@ namespace lsm {
 		void append(bool is_tombstone, const std::string& key, const std::string& val);
 		void flush();
 
-		void recover(SkipList& memtable) const;
+		void recover(SkipList& memtable);
+		void clear();
 	};
 
 }

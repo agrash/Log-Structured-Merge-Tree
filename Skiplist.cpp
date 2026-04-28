@@ -1,9 +1,7 @@
-#include <random>
 #include "SkipList.h"
 
 namespace lsm {
 
-	using Node = SkipList::Node;
 	using iterator = SkipList::iterator;
 
 	//Node functions.
@@ -15,12 +13,12 @@ namespace lsm {
 	std::vector<Node*> next;
 	*/
 
-	size_t Node::getSizeBytes() {
+	size_t SkipList::Node::getSizeBytes() const {
 		size_t footprint = sizeof(Node) + key.size() + val.size() + (next.size() * sizeof(Node*));
 		return footprint;
 	};
 
-	bool Node::isTombstone() const {
+	bool SkipList::Node::isTombstone() const {
 		return is_tombstone;
 	}
 	//End Node functions.
@@ -34,13 +32,14 @@ namespace lsm {
 		return ptr->val;
 	}
 
-    Node* iterator::operator->() {
+    SkipList::Node* iterator::operator->() {
         return ptr;
     }
 
-	iterator iterator::operator++() {
+	iterator& iterator::operator++() {
 		if (!ptr) {throw std::domain_error("Accessing out of bounds memory.");}
-		return iterator(ptr->next[0]);
+		ptr = ptr->next[0];
+		return *this;
 	}
 
 	bool iterator::operator==(const iterator& other) const{
@@ -67,7 +66,7 @@ namespace lsm {
     SkipList::SkipList() : gen(std::random_device{}()), dist(PROBABILITY) {
 		header = new Node({}, {}, MAX_LVL);
 
-		byte_counter = sizeof(SkipList) + getSize(header);
+		byte_counter = sizeof(SkipList) + getEntrySize(header);
 	}
 
 	SkipList::~SkipList() {
@@ -81,11 +80,11 @@ namespace lsm {
 	}
 
 
-	Node* SkipList::getHeader() const {
+	SkipList::Node* SkipList::getHeader() const {
 		return header;
 	}
  
-	std::vector<Node*> SkipList::getPredecessors(const std::string& key) const {
+	std::vector<SkipList::Node*> SkipList::getPredecessors(const std::string& key) const {
 		Node* curr = header;
 		int curr_level = MAX_LVL;
 
@@ -191,6 +190,21 @@ namespace lsm {
 
 	size_t SkipList::getSizeBytes() const {
 		return byte_counter;
+	}
+
+	void SkipList::clear() {
+		Node* next = header->next[0];
+		while (next) {
+			Node* curr = next;
+			next = next->next[0];
+			delete curr;
+		}
+
+		for (auto& node : header->next) {
+			node = nullptr;
+		}
+
+		byte_counter = 0;
 	}
 
 	//End SkipList functions.
