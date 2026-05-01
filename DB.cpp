@@ -38,6 +38,11 @@ namespace lsm {
 		checkAndHandleFlush();
 	}
 
+	void DB::remove(const std::string& key) {
+		wal_log.append(true, key, "");
+		memtable.insert(true, key, "");
+	}
+
 	returnStruct DB::get(const std::string& key) {
 		auto it = memtable.search(key);
 		if (it != memtable.end()) {

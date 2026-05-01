@@ -22,6 +22,7 @@ namespace lsm {
 		DB() : wal_log("wal.log") {}
 
 		void put(const std::string& key, const std::string& val);
+		void remove(const std::string& key);
 		returnStruct get(const std::string& key);
 
 		void recover();
