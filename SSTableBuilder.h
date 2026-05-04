@@ -19,7 +19,7 @@ namespace lsm {
 		void writeEntry(bool is_tombstone, const std::string& key, const std::string& val);
 		void writeIndex();
 
-		void flush(const SkipList& memtable);
+		void flush(const SkipList& memtable, BloomFilter& filter);
 	};
 
 }

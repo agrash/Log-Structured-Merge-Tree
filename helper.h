@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
+#include "MurmurHash3.h"
 
 namespace lsm {
 
@@ -27,6 +28,17 @@ namespace lsm {
 		std::string val;
 
 		returnStruct(bool key_found, bool is_tombstone, std::string val) : key_found(key_found), is_tombstone(is_tombstone), val(std::move(val)) {}
+	};
+
+	class BloomFilter {
+	private:
+		std::vector<bool> hash_table;
+		int num_hashes;
+	public:
+		BloomFilter(int size, int num_hashes) : hash_table(size), num_hashes(num_hashes) {}
+
+		void add(const std::string& key);
+		bool contains(const std::string& key);
 	};
 
 }

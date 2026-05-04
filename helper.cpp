@@ -66,4 +66,25 @@ namespace lsm {
 		return true;
 	}
 
+	void BloomFilter::add(const std::string& key) {
+		for (int seed=0; seed<num_hashes; ++seed) {
+			uint32_t hash;
+			MurmurHash3_x86_32(key.data(), key.size(), seed, &hash);
+
+			hash = hash % hash_table.size();
+			hash_table[hash] = true;
+		}
+	}
+
+	bool BloomFilter::contains(const std::string& key) {
+		for (int seed=0; seed<num_hashes; ++seed) {
+			uint32_t hash;
+			MurmurHash3_x86_32(key.data(), key.size(), seed, &hash);
+
+			hash = hash % hash_table.size();
+			if (!hash_table[hash]) {return false;}
+		}
+		return true;
+	}
+
 }

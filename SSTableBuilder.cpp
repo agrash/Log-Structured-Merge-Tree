@@ -30,10 +30,11 @@ namespace lsm {
 		file.close();
 	}
 
-	void SSTableBuilder::flush(const SkipList& memtable) {
+	void SSTableBuilder::flush(const SkipList& memtable, BloomFilter& filter) {
 
 		for (auto it = memtable.begin(); it != memtable.end(); ++it) {
 			writeEntry(it->is_tombstone, it->key, it->val);
+			filter.add(it->key);
 		}
 
 		writeIndex();

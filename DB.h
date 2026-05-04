@@ -6,6 +6,9 @@
 
 namespace lsm {
 
+	const int bloom_filter_size = 100000;
+	const int num_hashes = 10;
+
 	class DB {
 	private:
 		SkipList memtable;
@@ -15,6 +18,7 @@ namespace lsm {
 		const std::string prefix = "sstable";
 
 		std::vector<std::string> sstables;
+		std::vector<BloomFilter> filters;
 
 		void checkAndHandleFlush();
 

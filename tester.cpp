@@ -21,10 +21,20 @@ public:
 	}
 };
 
+/*int main() {
+	DB database;
+
+	const int limit = 10000;
+
+	for (int i=0; i<limit; ++i) {
+		database.put(to_string(i), to_string(i));
+	}
+}*/
+
 int main() {
 	DB database;
 
-	const int limit = 100000;
+	const int limit = 1000000;
 
 	mt19937 length_gen(random_device{}());
 	uniform_int_distribution<int> dist(1, 100);
@@ -35,6 +45,8 @@ int main() {
 
 
 	for (int i=0; i<limit; ++i) {
+
+		if (i % 10000 == 0) {cout<<i<<endl;}
 
 		string key = s.generate(dist(length_gen));
 		string val = s.generate(dist(length_gen));
@@ -53,7 +65,12 @@ int main() {
 		}
 	}
 
+	cout<<"Phase 1 done"<<endl;
+	int counter = 0;
+
 	for (auto& [key, val] : m) {
+		if (counter % 10000 == 0) {cout<<counter<<endl;}
+		counter++;
 		auto res = database.get(key);
 
 		if (!res.key_found || res.val != val || (val == "" && !res.is_tombstone)) {
@@ -62,6 +79,7 @@ int main() {
 		}
 
 	}
+	cout<<"Phase 2 done"<<endl;
 
 	for (int i=0; i<limit / 100; ++i) {
 		string key = s.generate(dist(length_gen));
@@ -76,4 +94,6 @@ int main() {
 	}
 
 	cout<<"All Clear!!!"<<endl;
+
+	return 0;
 }

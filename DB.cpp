@@ -22,9 +22,11 @@ namespace lsm {
 			//write logic for flush.
 
 			std::string flush_name = prefix + std::to_string(sstables.size()) + ".db";
-			SSTableBuilder builder(flush_name);
-			builder.flush(memtable);
 			sstables.push_back(flush_name);
+			filters.emplace_back(bloom_filter_size, num_hashes);
+
+			SSTableBuilder builder(flush_name);
+			builder.flush(memtable, filters.back());
 
 			wal_log.clear();
 			memtable.clear();
@@ -50,8 +52,10 @@ namespace lsm {
 			return returnStruct(true, false, it->val);
 		}
 
-		for (auto it = sstables.rbegin(); it != sstables.rend(); ++it) {
-			SSTableReader reader(*it);
+		for (int i = sstables.size()-1; i>=0; --i) {
+			if (!filters[i].contains(key)) {continue;}
+
+			SSTableReader reader(sstables[i]);
 
 			returnStruct res = reader.findKey(key);
 			if (res.key_found) {return res;}
