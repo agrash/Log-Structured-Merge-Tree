@@ -40,24 +40,25 @@ namespace lsm {
 
 	bool decode(std::ifstream& infile, bool& is_tombstone, std::string& key, std::string& val) {
 
-		auto helper = [&infile]() {
+		auto helper = [&infile](std::string& buffer) {
 			uint32_t length;
 			infile.read(reinterpret_cast<char*> (&length), sizeof(uint32_t));
 
-			std::string buffer(length, '\0');
+			if (length > buffer.size()) {
+				buffer.append(length - buffer.size(), '\0');
+			}
 			infile.read(buffer.data(), length);
-
-			return buffer;
+			buffer.resize(length);
 		};
 
 		uint8_t tombstone;
 		infile.read(reinterpret_cast<char*> (&tombstone), sizeof(uint8_t));
 		if (infile.eof()) {return false;}
 
-		key = helper();
+		helper(key);
 		if (tombstone == 0) {
 			is_tombstone = false;
-			val = helper();
+			helper(val);
 		}
 		else {
 			is_tombstone = true;

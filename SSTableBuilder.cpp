@@ -27,7 +27,9 @@ namespace lsm {
 	}
 
 	SSTableBuilder::~SSTableBuilder() {
-		file.close();
+		if (file.is_open()) {
+			file.close();
+		}
 	}
 
 	void SSTableBuilder::flush(const SkipList& memtable, BloomFilter& filter) {

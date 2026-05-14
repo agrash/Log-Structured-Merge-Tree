@@ -16,7 +16,7 @@ namespace lsm {
 	}
 
 	SSTableReader::SSTableReader(const std::string& filepath) {
-		file.open(filepath, std::ios::in | std::ios::binary);
+		file.open(filepath.c_str(), std::ios::in | std::ios::binary);
 		if (!file.is_open()) {
 			throw std::runtime_error("Unable to open file " + filepath);
 		}
@@ -62,9 +62,9 @@ namespace lsm {
 		std::streampos curr = file.tellg();
 		std::streampos end  = (idx != index.size() - 1) ? static_cast<std::streampos>(index[idx + 1].offset) : index_start;
 
-		while (curr < end) {
-			bool is_tombstone;
-			std::string saved_key, saved_val;
+		bool is_tombstone;
+		std::string saved_key, saved_val;
+		while (curr < end) {	
 
 			decode(file, is_tombstone, saved_key, saved_val);
 
@@ -77,7 +77,10 @@ namespace lsm {
 				return returnStruct(false, false, "");
 			}
 
-			curr = file.tellg();
+			curr += 1 + 4 + saved_key.size();
+			if (!is_tombstone) {
+				curr += 4 + saved_val.size();
+			}
 		}
 
 		return returnStruct(false, false, "");
