@@ -6,19 +6,20 @@
 
 namespace lsm {
 
-	const int bloom_filter_size = 100000;
-	const int num_hashes = 10;
 
 	class DB {
 	private:
 		SkipList memtable;
 		WAL wal_log;
 		static constexpr size_t FLUSH_TRIGGER = 4 * 1024 * 1024;
+		static constexpr size_t bloom_filter_size = FLUSH_TRIGGER / (16);
+		const int num_hashes = 10;
 
 		const std::string prefix = "sstable";
 
 		std::vector<std::string> sstables;
 		std::vector<BloomFilter> filters;
+		std::vector<std::unique_ptr<SSTableReader>> readers;
 
 		void checkAndHandleFlush();
 

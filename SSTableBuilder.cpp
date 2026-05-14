@@ -39,6 +39,8 @@ namespace lsm {
 
 		writeIndex();
 
+		file.close();
+
 	}
 
 	extern std::string encode(bool is_tombstone, const std::string& key, const std::string& val);

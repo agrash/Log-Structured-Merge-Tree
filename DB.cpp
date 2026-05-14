@@ -28,6 +28,8 @@ namespace lsm {
 			SSTableBuilder builder(flush_name);
 			builder.flush(memtable, filters.back());
 
+			readers.emplace_back(make_unique<SSTableReader>(flush_name));
+
 			wal_log.clear();
 			memtable.clear();
 		}
@@ -55,9 +57,7 @@ namespace lsm {
 		for (int i = sstables.size()-1; i>=0; --i) {
 			if (!filters[i].contains(key)) {continue;}
 
-			SSTableReader reader(sstables[i]);
-
-			returnStruct res = reader.findKey(key);
+			returnStruct res = readers[i]->findKey(key);
 			if (res.key_found) {return res;}
 		}
 

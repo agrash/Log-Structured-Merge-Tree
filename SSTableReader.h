@@ -14,6 +14,7 @@ namespace lsm {
 
 	public:
 		SSTableReader(const std::string& filepath);
+
 		~SSTableReader();
 		returnStruct findKey(const std::string& key);
 	};

@@ -67,22 +67,34 @@ namespace lsm {
 	}
 
 	void BloomFilter::add(const std::string& key) {
-		for (int seed=0; seed<num_hashes; ++seed) {
-			uint32_t hash;
-			MurmurHash3_x86_32(key.data(), key.size(), seed, &hash);
+		uint32_t h1, h2; 
+		MurmurHash3_x86_32(key.data(), key.size(), 0, &h1);
+		MurmurHash3_x86_32(key.data(), key.size(), 1, &h2);
 
-			hash = hash % hash_table.size();
-			hash_table[hash] = true;
+		h2 |= 1;
+
+		uint64_t mod_mask = hash_table.size() - 1;
+		for (uint64_t i=0; i<num_hashes; ++i) {
+			uint64_t hash = static_cast<uint64_t>(h1) + i * static_cast<uint64_t>(h2);
+
+			hash = hash & mod_mask;
+			hash_table[static_cast<uint32_t>(hash)] = true;
 		}
 	}
 
 	bool BloomFilter::contains(const std::string& key) {
-		for (int seed=0; seed<num_hashes; ++seed) {
-			uint32_t hash;
-			MurmurHash3_x86_32(key.data(), key.size(), seed, &hash);
+		uint32_t h1, h2; 
+		MurmurHash3_x86_32(key.data(), key.size(), 0, &h1);
+		MurmurHash3_x86_32(key.data(), key.size(), 1, &h2);
 
-			hash = hash % hash_table.size();
-			if (!hash_table[hash]) {return false;}
+		h2 |= 1;
+
+		uint64_t mod_mask = hash_table.size() - 1;
+		for (uint64_t i=0; i<num_hashes; ++i) {
+			uint64_t hash = static_cast<uint64_t>(h1) + i * static_cast<uint64_t>(h2);
+
+			hash = hash & mod_mask;
+			if (!hash_table[static_cast<uint32_t>(hash)]) {return false;}
 		}
 		return true;
 	}
