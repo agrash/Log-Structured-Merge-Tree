@@ -13,83 +13,91 @@ namespace lsm {
 
 	SSTableBuilder merged_file;
 	*/
-	SSTableMerger::SSTableMerger(bool remove_tombstones, const std::string& old_file_path, const std::string& new_file_path, const std::string& merged_file_path) : remove_tombstones(remove_tombstones), merged_file(merged_file_path) {
 
-		old_file.open(old_file_path, std::ios::in | std::ios::binary);
-		if (!old_file.is_open()) {throw std::runtime_error("Unable to open " + old_file_path);}
+	extern bool decode(std::ifstream& infile, bool& is_tombstone, std::string& key, std::string& val);
 
-		new_file.open(new_file_path, std::ios::in | std::ios::binary);
-		if (!new_file.is_open()) {throw std::runtime_error("Unable to open " + new_file_path);}
+	SSTableIterator::SSTableIterator(const std::string& filepath) : pos(0) {
+		file.open(filepath, std::ios::in | std::ios::binary);
+		if (!file.is_open()) {
+			throw std::runtime_error("Unable to open file " + filepath + " in SSTableIterator");
+		}
 
-		auto helper = [](std::streampos& index_start, std::ifstream& file) {
-			file.seekg(-(int)(sizeof(uint64_t)), std::ios::end);
-			uint64_t file_offset;
-			file.read(reinterpret_cast<char*> (&file_offset), sizeof(uint64_t));
-			index_start = static_cast<std::streamoff> (file_offset);
-		};
+		file.seekg(-(int)sizeof(uint64_t), std::ios::end);
 
-		helper(old_file_index_start, old_file);
-		helper(new_file_index_start, new_file);
+		file.read(reinterpret_cast<char*> (&index_start), sizeof(uint64_t));
+
+		file.seekg(0);
+	}
+
+	SSTableIterator::~SSTableIterator() {
+		file.close();
+	}
+
+	std::optional<dataContainer> SSTableIterator::getNext() {
+		if (pos == index_start) {return std::nullopt;}
+
+		dataContainer container;
+
+		decode(file, container.is_tombstone, container.key, container.val);
+
+		pos += sizeof(uint8_t) + sizeof(uint32_t) + container.key.size();
+		if (!container.is_tombstone) {
+			pos += sizeof(uint32_t) + container.val.size();
+		}
+
+		return container;
+	}
+
+	// Assumes that file are passed in chronological order.
+	SSTableMerger::SSTableMerger(bool remove_tombstones, const std::vector<std::string>& filepaths, const std::string& merged_file_path, BloomFilter& filter) : remove_tombstones(remove_tombstones), merged_file(merged_file_path, filter) {
+
+		for (size_t i=0; i<filepaths.size(); ++i) {
+			iterators.emplace_back(make_unique<SSTableIterator>(filepaths[i]));
+		}
 
 		merge();
 	}
 
-	extern bool decode(std::ifstream& infile, bool& is_tombstone, std::string& key, std::string& val);
-
 	void SSTableMerger::merge() {
-		old_file.seekg(0);
-		new_file.seekg(0);
 
-		std::streampos old_file_pos = old_file.tellg();
-		std::streampos new_file_pos = new_file.tellg();
+		std::vector<std::optional<dataContainer>> file_data(iterators.size(), std::nullopt);
 
-		dataContainer old_file_data;
-		dataContainer new_file_data;
+		bool all_null;
+		do {
+			all_null = true;
+			size_t min_index = -1;
 
-		bool read_old_file = true;
-		bool read_new_file = true;
+			for (size_t i=0; i<iterators.size(); ++i) {
+				if (!file_data[i]) {
+					file_data[i] = iterators[i]->getNext();
+				}
 
-		auto helper = [](std::ifstream& infile, std::streampos& pos, dataContainer& container) {
-			decode(infile, container.is_tombstone, container.key, container.val);
-			pos = infile.tellg();
-		};
+				if (file_data[i]) {
+					if (all_null) {
+						all_null = false;
+						min_index = i;
+					}
+					else {
+						auto cmp = (*file_data[min_index]).key <=> (*file_data[i]).key;
 
-		while (old_file_pos < old_file_index_start && new_file_pos < new_file_index_start) {
-			if (read_old_file) {
-				helper(old_file, old_file_pos, old_file_data);
+						if (cmp == 0) {
+							file_data[min_index] = std::nullopt;
+						}
+
+						if (cmp >= 0) {
+							min_index = i;
+						}
+					}
+				}
 			}
-			if (read_new_file) {
-				helper(new_file, new_file_pos, new_file_data);
+
+			if (!all_null) {
+				writeEntry(*file_data[min_index]);
+				file_data[min_index] = std::nullopt;
 			}
 
-			auto cmp_keys = new_file_data.key <=> old_file_data.key;
-			if (cmp_keys == 0) {
-				writeEntry(new_file_data);
-				read_old_file = true;
-				read_new_file = true;
-			}
-			else if (cmp_keys < 0) {
-				writeEntry(new_file_data);
-				read_old_file = false;
-				read_new_file = true;
-			}
-			else {
-				writeEntry(old_file_data);
-				read_old_file = true;
-				read_new_file = false;
-			}
-		}
+		} while (!all_null);
 
-		auto addRemaining = [&helper, this](std::ifstream& file, std::streampos& pos, std::streampos& end, dataContainer& data, bool read_pending) {
-			if (read_pending) {writeEntry(data);}
-			while (pos < end) {
-				helper(file, pos, data);
-				writeEntry(data);
-			}
-		};
-
-		addRemaining(old_file, old_file_pos, old_file_index_start, old_file_data, !read_old_file);
-		addRemaining(new_file, new_file_pos, new_file_index_start, new_file_data, !read_new_file);
 
 		writeIndex();
 	}

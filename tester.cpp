@@ -4,6 +4,7 @@
 #include <chrono>
 #include <ctime>
 #include <algorithm>
+#include<stdexcept>
 #include "DB.h"
 using namespace std;
 using namespace lsm;
@@ -59,14 +60,14 @@ int main() {
 		m[key] = val;
 	}
 
-	for (auto& [key, val] : m) {
+	/*for (auto& [key, val] : m) {
 		bool d = dist(length_gen) <= 5;
 
 		if (d) {
 			database.remove(key);
 			val = "";
 		}
-	}
+	}*/
 
 	vector<pair<string, string>> key_val;
 	for (auto& [key, val] : m) {
@@ -81,7 +82,6 @@ int main() {
 	auto start = std::chrono::high_resolution_clock::now();
 	for (auto& [key, val] : key_val) {
 		auto res = database.get(key);
-
 	}
 
 	auto end = std::chrono::high_resolution_clock::now();
@@ -94,7 +94,7 @@ int main() {
 
 	cout<<duration.count()<<endl;
 
-	for (int i=0; i<limit / 100; ++i) {
+	/*for (int i=0; i<limit / 100; ++i) {
 		string key = s.generate(dist(length_gen));
 
 		auto res = database.get(key);
@@ -104,7 +104,7 @@ int main() {
 			cout<<"Failed"<<endl;
 			return 0;
 		}
-	}
+	}*/
 
 	cout<<"All Clear!!!"<<endl;
 

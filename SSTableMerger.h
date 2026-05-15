@@ -1,34 +1,44 @@
+#pragma once
 #include "helper.h"
 #include "SSTableBuilder.h"
 
 namespace lsm {
 
+	struct dataContainer {
+		bool is_tombstone;
+		std::string key;
+		std::string val;
+
+		dataContainer() {}
+	};
+
+	class SSTableIterator {
+	private:
+		std::ifstream file;
+		uint64_t index_start;
+		std::streampos pos;
+
+	public:
+		SSTableIterator(const std::string& filepath);
+		~SSTableIterator();
+
+		std::optional<dataContainer> getNext();
+	};
+
 	class SSTableMerger {
 	private:
 		bool remove_tombstones;
 
-		std::ifstream old_file;
-		std::streampos old_file_index_start;
-
-		std::ifstream new_file;
-		std::streampos new_file_index_start;
-
 		SSTableBuilder merged_file;
 
-		struct dataContainer {
-			bool is_tombstone;
-			std::string key;
-			std::string val;
-
-			dataContainer() {}
-		};
+		std::vector<std::unique_ptr<SSTableIterator>> iterators;
 
 		void merge();
 		void writeEntry(dataContainer& data);
 		void writeIndex();
 
 	public:
-		SSTableMerger(bool remove_tombstones, const std::string& old_file_path, const std::string& new_file_path, const std::string& merged_file_path);
+		SSTableMerger(bool remove_tombstones, const std::vector<std::string>& filepaths, const std::string& merged_file_path, BloomFilter& filter);
 	};
 
 }

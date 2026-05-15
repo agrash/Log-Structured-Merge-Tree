@@ -15,7 +15,7 @@ namespace lsm {
 		file.close();
 	}
 
-	SSTableReader::SSTableReader(const std::string& filepath) {
+	SSTableReader::SSTableReader(const std::string& filepath) : filepath(filepath) {
 		file.open(filepath.c_str(), std::ios::in | std::ios::binary);
 		if (!file.is_open()) {
 			throw std::runtime_error("Unable to open file " + filepath);
@@ -49,7 +49,7 @@ namespace lsm {
 
 	extern bool decode(std::ifstream& infile, bool& is_tombstone, std::string& key, std::string& val);
 
-	std::string SSTableReader::findKey(const std::string& key) {
+	std::optional<std::string> SSTableReader::findKey(const std::string& key) {
 
 		Bookmark dummy(key, 0);
 		int idx = upper_bound(index.begin(), index.end(), dummy) - index.begin() - 1;
@@ -74,7 +74,7 @@ namespace lsm {
 				else {return saved_val;}
 			}
 			else if (cmp_result > 0) {
-				return "";
+				return std::nullopt;
 			}
 
 			curr += sizeof(uint8_t) + sizeof(uint32_t) + saved_key.size();
@@ -83,7 +83,11 @@ namespace lsm {
 			}
 		}
 
-		return {};
+		return std::nullopt;
+	}
+
+	std::string SSTableReader::getFilePath() {
+		return filepath;
 	}
 
 }

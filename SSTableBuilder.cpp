@@ -18,7 +18,7 @@ namespace lsm {
 	};
 	*/
 
-	SSTableBuilder::SSTableBuilder(const std::string& filepath) : added(0), current_offset(0) {
+	SSTableBuilder::SSTableBuilder(const std::string& filepath, BloomFilter& filter) : added(0), current_offset(0), filter(filter) {
 		file.open(filepath, std::ios::out | std::ios::trunc | std::ios::binary);
 
 		if (!file.is_open()) {
@@ -32,7 +32,7 @@ namespace lsm {
 		}
 	}
 
-	void SSTableBuilder::flush(const SkipList& memtable, BloomFilter& filter) {
+	void SSTableBuilder::flush(const SkipList& memtable) {
 
 		for (auto it = memtable.begin(); it != memtable.end(); ++it) {
 			writeEntry(it->is_tombstone, it->key, it->val);
@@ -40,8 +40,6 @@ namespace lsm {
 		}
 
 		writeIndex();
-
-		file.close();
 
 	}
 
@@ -54,6 +52,8 @@ namespace lsm {
 
 		std::string buffer = encode(is_tombstone, key, val);
 		file.write(buffer.data(), buffer.size());
+
+		filter.add(key);
 
 		current_offset += buffer.size();
 		++added;
@@ -74,6 +74,9 @@ namespace lsm {
 		}
 
 		file.write(reinterpret_cast<const char*> (&index_offset), sizeof(uint64_t));
+
+		file.flush();
+		file.close();
 	}
 
 }

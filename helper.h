@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include <string>
+#include <optional>
 #include "MurmurHash3.h"
 
 namespace lsm {

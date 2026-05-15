@@ -1,3 +1,4 @@
+#pragma once
 #include "SkipList.h"
 #include "helper.h"
 

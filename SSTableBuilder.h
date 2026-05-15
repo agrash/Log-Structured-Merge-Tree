@@ -1,3 +1,4 @@
+#pragma once
 #include "helper.h"
 #include "SkipList.h"
 
@@ -12,14 +13,16 @@ namespace lsm {
 
 		const size_t INDEX_ENTRY_SIZE = 100;
 
+		BloomFilter& filter;
+
 	public:
-		SSTableBuilder(const std::string& filepath);
+		SSTableBuilder(const std::string& filepath, BloomFilter& filter);
 		~SSTableBuilder();
 
 		void writeEntry(bool is_tombstone, const std::string& key, const std::string& val);
 		void writeIndex();
 
-		void flush(const SkipList& memtable, BloomFilter& filter);
+		void flush(const SkipList& memtable);
 	};
 
 }
