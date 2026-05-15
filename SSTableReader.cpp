@@ -3,14 +3,6 @@
 namespace lsm {
 
 
-	/*
-	std::ifstream file;
-
-	uint64_t index_offset;
-	std::streampos index_start;
-
-	std::vector<Bookmark> index;
-	*/
 	SSTableReader::~SSTableReader() {
 		file.close();
 	}

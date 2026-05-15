@@ -25,16 +25,6 @@ public:
 	}
 };
 
-/*int main() {
-	DB database;
-
-	const int limit = 10000;
-
-	for (int i=0; i<limit; ++i) {
-		database.put(to_string(i), to_string(i));
-	}
-}*/
-
 int main() {
 	DB database;
 
@@ -60,14 +50,17 @@ int main() {
 		m[key] = val;
 	}
 
-	/*for (auto& [key, val] : m) {
+	for (auto it = m.begin(); it != m.end(); ) {
 		bool d = dist(length_gen) <= 5;
 
 		if (d) {
-			database.remove(key);
-			val = "";
+			database.remove(it->first);
+			it = m.erase(it);
 		}
-	}*/
+		else {
+			++it;
+		}
+	}
 
 	vector<pair<string, string>> key_val;
 	for (auto& [key, val] : m) {
@@ -94,17 +87,20 @@ int main() {
 
 	cout<<duration.count()<<endl;
 
-	/*for (int i=0; i<limit / 100; ++i) {
+	for (int i=0; i<limit / 100; ++i) {
 		string key = s.generate(dist(length_gen));
 
 		auto res = database.get(key);
 		auto it = m.find(key);
 
-		if ((it != m.end() && (it->second == "" ^ res == "")) || (it == m.end() && res != "")) {
+		if ((res != std::nullopt && *res != "") ^ it != m.end()) {
+			cout<<i<<endl;
+			if (res) {cout<<"Excess "<<*res<<endl;}
+			else {cout<<"Didn't find "<<it->second<<endl;}
 			cout<<"Failed"<<endl;
 			return 0;
 		}
-	}*/
+	}
 
 	cout<<"All Clear!!!"<<endl;
 

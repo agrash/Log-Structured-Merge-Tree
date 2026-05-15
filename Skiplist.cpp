@@ -4,15 +4,6 @@ namespace lsm {
 
 	using iterator = SkipList::iterator;
 
-	//Node functions.
-	/*
-	bool is_tombstone;
-	std::string key;
-	std::string val;
-
-	std::vector<Node*> next;
-	*/
-
 	size_t SkipList::Node::getSizeBytes() const {
 		size_t footprint = sizeof(Node) + key.size() + val.size() + (next.size() * sizeof(Node*));
 		return footprint;
@@ -22,11 +13,6 @@ namespace lsm {
 		return is_tombstone;
 	}
 	//End Node functions.
-
-	//iterator functions.
-	/*
-	Node* ptr;
-	*/
 
 	std::string& iterator::operator*() {
 		return ptr->val;
@@ -51,18 +37,6 @@ namespace lsm {
     }
     //End iterator functions.
 
-
-    //SkipList functions.
-    /*
-    const size_t MAX_LVL = 20;
-	const double PROBABILITY = 0.5;
-	std::mt19937 gen;
-	std::geometric_distribution<int> dist;
-
-	size_t byte_counter;
-
-	Node* header;
-    */
     SkipList::SkipList() : gen(std::random_device{}()), dist(PROBABILITY) {
 		header = new Node({}, {}, MAX_LVL);
 
@@ -127,26 +101,6 @@ namespace lsm {
 
 		return end();
 	}
-
-	/*bool SkipList::remove(const std::string& key) {
-		auto predecessors = getPredecessors(key);
-		Node* curr = predecessors[0]->next[0];
-
-		if (!curr || curr->key != key) {
-			return false;
-		}
-
-		int levels = curr->next.size() - 1;
-
-		for (int i=levels; i>=0; --i) {
-			predecessors[i]->next[i] = curr->next[i];
-		}
-
-		byte_counter -= getEntrySize(curr);
-		delete curr;
-
-		return true;
-	}*/
 
 	void SkipList::insert(bool insert_tombstone, const std::string& key, const std::string& val) {
 		auto predecessors = getPredecessors(key);

@@ -2,11 +2,6 @@
 
 namespace lsm {
 
-	/*
-	std::ofstream file;
-	const std::string filepath;
-	*/
-
 	WAL::WAL(const std::string& path) : filepath(path) {
 		file.open(path, std::ios::out | std::ios::app | std::ios::binary);
 		if (!file.is_open()) {

@@ -2,16 +2,6 @@
 
 namespace lsm {
 
-	/*
-	SkipList memtable;
-	WAL wal_log;
-	static constexpr size_t FLUSH_TRIGGER = 4 * 1024 * 1024;
-
-	const std::string prefix = "sstable";
-	const std::string wal_file = "wal.log";
-
-	std::vector<std::string> sstables;
-	*/
 
 	void DB::checkAndHandleFlush() {
 		size_t memtable_size = memtable.getSizeBytes();
@@ -19,7 +9,6 @@ namespace lsm {
 		if (memtable_size >= FLUSH_TRIGGER) {
 			std::cout<<"Trigerring Flush!\n";
 
-			//write logic for flush.
 
 			std::string flush_name = prefix + "0_" + std::to_string(readers_with_level[0].size()) + ".db";
 			filters[0].emplace_back(bloom_filter_size, num_hashes);

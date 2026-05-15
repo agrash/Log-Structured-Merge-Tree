@@ -2,17 +2,6 @@
 
 namespace lsm {
 
-	/*
-	bool remove_tombstones
-
-	std::ifstream old_file;
-	std::streampos old_file_index_start;
-
-	std::ifstream new_file;
-	std::streampos new_file_index_start;
-
-	SSTableBuilder merged_file;
-	*/
 
 	extern bool decode(std::ifstream& infile, bool& is_tombstone, std::string& key, std::string& val);
 

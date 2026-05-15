@@ -2,21 +2,6 @@
 
 namespace lsm {
 
-	/*
-	std::ofstream file;
-	std::vector<Bookmark> index;
-	size_t added;
-	uint64_t current_offset;
-
-	const size_t INDEX_ENTRY_SIZE = 100;
-
-	struct Bookmark {
-		std::string key;
-		uint64_t offset;
-
-		Bookmark(const std::string& key, uint64_t offset) : key(key), offset(offset) {}
-	};
-	*/
 
 	SSTableBuilder::SSTableBuilder(const std::string& filepath, BloomFilter& filter) : added(0), current_offset(0), filter(filter) {
 		file.open(filepath, std::ios::out | std::ios::trunc | std::ios::binary);
