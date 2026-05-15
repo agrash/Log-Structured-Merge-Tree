@@ -47,21 +47,25 @@ namespace lsm {
 		memtable.insert(true, key, "");
 	}
 
-	returnStruct DB::get(const std::string& key) {
+	extern std::pair<uint32_t, uint32_t> getHashes(const std::string& key);
+
+	std::string DB::get(const std::string& key) {
 		auto it = memtable.search(key);
 		if (it != memtable.end()) {
-			if (it->is_tombstone) {return returnStruct(true, true, "");}
-			return returnStruct(true, false, it->val);
+			if (it->is_tombstone) {return "";}
+			return it->val;
 		}
+
+		auto [h1, h2] = getHashes(key);
 
 		for (int i = sstables.size()-1; i>=0; --i) {
-			if (!filters[i].contains(key)) {continue;}
+			if (!filters[i].contains(h1, h2)) {continue;}
 
-			returnStruct res = readers[i]->findKey(key);
-			if (res.key_found) {return res;}
+			std::string res = readers[i]->findKey(key);
+			if (res != "") {return std::move(res);}
 		}
 
-		return returnStruct(false, false, "");
+		return "";
 	}
 
 	void DB::recover() {

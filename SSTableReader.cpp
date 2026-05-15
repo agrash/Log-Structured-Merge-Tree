@@ -49,12 +49,12 @@ namespace lsm {
 
 	extern bool decode(std::ifstream& infile, bool& is_tombstone, std::string& key, std::string& val);
 
-	returnStruct SSTableReader::findKey(const std::string& key) {
+	std::string SSTableReader::findKey(const std::string& key) {
 
 		Bookmark dummy(key, 0);
 		int idx = upper_bound(index.begin(), index.end(), dummy) - index.begin() - 1;
 		if (idx < 0) {
-			return returnStruct(false, false, "");
+			return "";
 		}
 
 		file.seekg(index[idx].offset);
@@ -70,20 +70,20 @@ namespace lsm {
 
 			auto cmp_result = saved_key <=> key;
 			if (cmp_result == 0) {
-				if (is_tombstone) {return returnStruct(true, true, "");}
-				else {return returnStruct(true, false, std::move(saved_val));}
+				if (is_tombstone) {return {};}
+				else {return saved_val;}
 			}
 			else if (cmp_result > 0) {
-				return returnStruct(false, false, "");
+				return "";
 			}
 
-			curr += 1 + 4 + saved_key.size();
+			curr += sizeof(uint8_t) + sizeof(uint32_t) + saved_key.size();
 			if (!is_tombstone) {
-				curr += 4 + saved_val.size();
+				curr += sizeof(uint32_t) + saved_val.size();
 			}
 		}
 
-		return returnStruct(false, false, "");
+		return {};
 	}
 
 }

@@ -67,12 +67,19 @@ namespace lsm {
 		return true;
 	}
 
-	void BloomFilter::add(const std::string& key) {
+	std::pair<uint32_t, uint32_t> getHashes(const std::string& key) {
 		uint32_t h1, h2; 
 		MurmurHash3_x86_32(key.data(), key.size(), 0, &h1);
 		MurmurHash3_x86_32(key.data(), key.size(), 1, &h2);
 
 		h2 |= 1;
+
+		return {h1, h2};
+	}
+
+	void BloomFilter::add(const std::string& key) {
+
+		auto [h1, h2] = getHashes(key);
 
 		uint64_t mod_mask = hash_table.size() - 1;
 		for (uint64_t i=0; i<num_hashes; ++i) {
@@ -83,12 +90,7 @@ namespace lsm {
 		}
 	}
 
-	bool BloomFilter::contains(const std::string& key) {
-		uint32_t h1, h2; 
-		MurmurHash3_x86_32(key.data(), key.size(), 0, &h1);
-		MurmurHash3_x86_32(key.data(), key.size(), 1, &h2);
-
-		h2 |= 1;
+	bool BloomFilter::contains(uint32_t h1, uint32_t h2) {
 
 		uint64_t mod_mask = hash_table.size() - 1;
 		for (uint64_t i=0; i<num_hashes; ++i) {

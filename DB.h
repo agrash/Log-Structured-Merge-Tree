@@ -15,7 +15,7 @@ namespace lsm {
 		static constexpr size_t bloom_filter_size = FLUSH_TRIGGER / (16);
 		const int num_hashes = 10;
 
-		const std::string prefix = "sstable";
+		const std::string prefix = "./Tables/sstable";
 
 		std::vector<std::string> sstables;
 		std::vector<BloomFilter> filters;
@@ -28,7 +28,7 @@ namespace lsm {
 
 		void put(const std::string& key, const std::string& val);
 		void remove(const std::string& key);
-		returnStruct get(const std::string& key);
+		std::string get(const std::string& key);
 
 		void recover();
 	};
