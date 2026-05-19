@@ -54,7 +54,7 @@ namespace lsm {
 		bool all_null;
 		do {
 			all_null = true;
-			size_t min_index = -1;
+			int min_index = -1;
 
 			for (size_t i=0; i<iterators.size(); ++i) {
 				if (!file_data[i]) {
